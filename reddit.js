@@ -95,7 +95,7 @@ function getSubreddit(subreddit, callback) {
             url: posts.data.url,
           };
         });
-        console.log(arrrayToPrint);
+        console.log("getsubreddit function" + arrrayToPrint);
         callback(null, arrrayToPrint)
       }
       catch (err) {
