@@ -7,6 +7,7 @@ var getSubreddits = require('./reddit.js').getSubreddits;
 var prompt = require('prompt');
 var clear = require('clear');
 var requestAsJson = require('request');
+var wrap = require('word-wrap');
 const imageToAscii = require("image-to-ascii");
 
 var menuChoices = [{
@@ -59,19 +60,13 @@ function menu() {
         });
       }
 
-      // if (answers.menu === "SUBREDDITS") {
-      //   console.log("menu selection works!!");
-      //   getSubreddits(menuError);
-      // }
-
       if (answers.menu === "SUBREDDITS") {
         getSubreddits(function(err, subreddits) {
           menuSubreddits(subreddits, function(sub) {
-           // console.log(sub, 'SECOND CALLBACK')
+            //console.log(sub, 'SECOND CALLBACK');
             getSubredditposts(sub, function(link) {
               //console.log(link, "THIS SHOULD BE THE MOFO LNK")
               getSubredditpostsImage(link);
-
             });
           });
         });
@@ -80,6 +75,13 @@ function menu() {
 }
 
 menu();
+
+
+
+
+
+
+
 
 function menuSubreddits(subreddit, callback) {
   var subChoices = subreddit.map(function(subName) {
@@ -99,7 +101,10 @@ function menuSubreddits(subreddit, callback) {
   });
 }
 
-function getSubredditposts(subreddit, callback) {
+
+
+
+function getSubredditposts(subreddit, callback, callback2) {
   // Load reddit.com/r/{subreddit}.json and call back with the array of posts
   requestAsJson('https://reddit.com/r/' + subreddit + '.json', function(err, res) {
     if (err) {
@@ -112,8 +117,9 @@ function getSubredditposts(subreddit, callback) {
         var arrrayToPrint = subredditPosts.data.children.map(function(posts) {
           return {
             name: posts.data.title,
-            username: posts.data.author,
-            value: posts.data.url,
+            //username: posts.data.author,
+            value: { url:posts.data.url, permalink : posts.data.permalink},
+            //comments: posts.data.permalink,
           };
         });
       }
@@ -126,23 +132,72 @@ function getSubredditposts(subreddit, callback) {
         message: 'Which post?',
         choices: arrrayToPrint
       }).then(function(answer) {
+        console.log(answer.subpostsmenu + "   this is my final answer")
+        
         callback(answer.subpostsmenu);
+        //callback2();
       });
 
     }
   })
 }
 
-// This function doesn't seem to work....
+
+
+
+
+
 function getSubredditpostsImage(link) {
   // Load reddit.com/r/{subreddit}.json and call back with the array of posts
-  console.log(link)
-  if (link.indexOf('.jpg') > -1 || link.indexOf('.gif') > -1 || link.indexOf('.png') > -1) {
-     
-     imageToAscii(link, (err, converted) => {
+  displayComments(link.permalink);
+  if (link.url.indexOf('.jpg') > -1 || link.url.indexOf('.gif') > -1 || link.url.indexOf('.png') > -1) {
+
+    imageToAscii(link.url, (err, converted) => {
       console.log(err || converted);
-      menu();
+      
     });
-    
+menu();
   }
+}
+
+
+
+
+function displayComments(testPermalink) {
+
+  var arrayOfCommentObjs = requestAsJson('https://reddit.com' + testPermalink + ".json", function(err, res) {
+    if (err) {
+      console.log("something wrong with printing comments");
+    }
+    else {
+      try {
+        var parsedComments = JSON.parse(res.body);
+        //console.log(parsedComments[1].data.children)
+        // parsedComments[1].data.children.map(function(comment){
+        //     console.log(comment.data.body);
+        // })
+        function printComments(comments, level) {
+          comments.forEach(function(comment) {
+            if (comment.data.body) {
+              console.log(wrap(comment.data.body, {
+                indent: level,
+              }, {
+                width: 100
+              }));
+              if (comment.data.replies && comment.data.replies.data) {
+                printComments(comment.data.replies.data.children, level + "   ");
+              }
+            }
+
+          });
+        }
+        printComments(parsedComments[1].data.children, "");
+        
+      }
+      catch (e) {
+        console.log("errors abundant");
+      }
+    }
+
+  });
 }
