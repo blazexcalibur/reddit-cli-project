@@ -1,4 +1,5 @@
 var requestAsJson = require('request');
+const imageToAscii = require("image-to-ascii");
 
 /*
 This function should "return" the default homepage posts as an array of objects
@@ -12,6 +13,7 @@ function getHomepage(callback) {
     }
     else {
       try {
+    
         var response = JSON.parse(res.body);
         var arrrayToPrint;
 
@@ -61,11 +63,11 @@ function getSortedHomepage(sortingMethod, callback) {
     else {
       try {
         var parsedSortedHomepage = JSON.parse(res.body);
-        console.log(parsedSortedHomepage.data.children);
+        //console.log(parsedSortedHomepage.data.children);
         callback(null, parsedSortedHomepage.data.children);
       }
       catch (err) {
-        console.log("huge error here");
+        console.log("huge error here getsortedhomepage");
       }
     }
   });
@@ -74,6 +76,7 @@ function getSortedHomepage(sortingMethod, callback) {
 /*
 This function should "return" the posts on the front page of a subreddit as an array of objects.
 */
+
 function getSubreddit(subreddit, callback) {
   // Load reddit.com/r/{subreddit}.json and call back with the array of posts
   requestAsJson('https://reddit.com/r/' + subreddit + '.json', function(err, res) {
@@ -91,13 +94,12 @@ function getSubreddit(subreddit, callback) {
             username: posts.data.author,
             url: posts.data.url,
           };
-          
         });
         console.log(arrrayToPrint);
         callback(null, arrrayToPrint)
       }
       catch (err) {
-        console.log("huge error here")
+        console.log("huge error here in getsubreddit")
       }
       
     }
@@ -118,7 +120,7 @@ function getSortedSubreddit(subreddit, sortingMethod, callback) {
     else {
       try {
         var parsedSortedSubreddit = JSON.parse(res.body);
-        console.log(parsedSortedSubreddit);
+        //console.log(parsedSortedSubreddit);
         callback(null, parsedSortedSubreddit.data.children);
       }
       catch (err) {
@@ -144,19 +146,26 @@ function getSubreddits(callback) {
 
         var subredditArry = subreddit.data.children.map(function(subreddit) {
           //console.log(subreddit.data.subreddit);
-          return subreddit.data.display_name;
+          return {
+
+            value: subreddit.data.display_name,
+            name: subreddit.data.title,
+            url: subreddit.data.url,
+            header_title: subreddit.data.header_title,
+          };
         });
 
-        //console.log(subredditArry)
+        //console.log(subredditArry);
 
-        callback(subredditArry);
+        callback(null, subredditArry);
       }
       catch (err) {
         console.log("huge error here");
       }
     }
-  })
+  });
 }
+
 
 
 
@@ -173,7 +182,8 @@ module.exports = {
 
 //testing area below!
 
-// getSubreddit("awww", function(){
+
+// getSubreddits(function(){
 //   console.log("it works");
 // })
 
