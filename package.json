@@ -4,6 +4,9 @@
   "description": "Reddit command-line browsing",
   "main": "index.js",
   "dependencies": {
+    "clear": "0.0.1",
+    "image-to-ascii": "^3.0.3",
+    "image-to-ascii-cli": "^1.0.2",
     "inquirer": "^1.0.2",
     "prompt": "^1.0.0",
     "request": "^2.72.0"
